@@ -1,0 +1,23 @@
+body {
+    width: 400px;
+}
+
+#user-props {
+  display: flex;
+}
+
+#user-props div {
+  padding: 0.5em;
+}
+
+#avatar {
+  flex-grow: 0;
+}
+
+#avatar img {
+  max-width: 100px;
+}
+
+#username {
+  flex-grow: 2;
+}

@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "My Assigned Issues",
+  "version": "1.0",
+  "icons": {
+    "19":"img/icon-19px.png",
+    "38":"img/icon-38px.png",
+    "64":"img/icon-64px.png",
+    "128":"img/icon-128px.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19":"img/icon-19px.png",
+      "38":"img/icon-38px.png"
+    },
+    "default_popup": "popup.html"
+  },
+  "permissions": ["https://avatars.githubusercontent.com/"]
+}
