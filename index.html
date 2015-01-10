@@ -1,0 +1,675 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Issue Viewer - Chrome Extensions Codelab</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Chrome Extensions Codelab</h1>
+        <p>Getting started building Chrome extensions by building a basic issue viewer.</p>
+        <p class="view"><a href="https://github.com/GoogleDeveloperExperts/issue-viewer-chrome-extension-codelab">View the Project on GitHub <small>GoogleDeveloperExperts/issue-viewer-chrome-extension-codelab</small></a></p>
+        <ul>
+          <li><a href="https://github.com/GoogleDeveloperExperts/issue-viewer-chrome-extension-codelab/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/GoogleDeveloperExperts/issue-viewer-chrome-extension-codelab/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/GoogleDeveloperExperts/issue-viewer-chrome-extension-codelab">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h3>
+          <a id="welcome" class="anchor" href="#welcome" aria-hidden="true">
+            <span class="octicon octicon-link"></span>
+          </a>Welcome!
+        </h3>
+        <p>This codelab is designed to help you learn about building Chrome extensions. During this lab, we're going to build a basic issue tracking extension that talks to the Github API to retrieve issues within one of your repos.</p>
+        
+        <h3>
+          <a id="things-we-use" class="anchor" href="#things-we-use" aria-hidden="true">
+            <span class="octicon octicon-link"></span>
+          </a>Things we'll use
+        </h3>
+        <p>Documentation! You can never have enough of it and during this codelab you may find yourself looking for one more method to go that extra mile. Docs you may find useful include:</p>
+        
+        <ul>
+          <li><a href="https://developer.chrome.com/extensions/api_index">Chrome Extension API documentation</a></li>
+          <li><a href="https://developer.github.com/v3/">GitHub API v3 documentation</a></li>
+        </ul>
+        <p>Autocomplete / Intellisense is often a developers best friend. You have a few options depending on your editor of choice when developing with Chrome Extensions APIs:</p>
+        <ul>
+          <li><a href="https://packagecontrol.io/packages/Chrome%20Apps%20and%20Extensions">Sublime2</a></li>
+          <li><a href="https://stackoverflow.com/questions/13997468/how-do-i-use-webstorm-for-chrome-extension-development/25466708#25466708">WebStorm</a></li>
+        </ul>
+        
+        <h3>
+          <a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true">
+            <span class="octicon octicon-link"></span>
+          </a>Getting started
+        </h3>
+        <p>First, let's start by creating a directory for our extension:</p>
+<pre><code>➜ ~ mkdir my-magical-extension
+➜ ~ cd my-magical-extension
+</code></pre>
+
+        <p>Next, we need to create the basic building blocks of our extension. To do that, we need to create a manifest.json file:</p>
+        
+<pre><code>➜ ~ touch manifest.json
+</code></pre>
+
+        <p>The manifest.json file defines important information about our extension (see <a href="https://developer.chrome.com/extensions/manifest">manifest.json documentation</a>). From permissions to versioning, without a manifest.json file, Chrome doesn't know what to do with the rest of the code we'll write. We're going to start by adding some basics to our file. In your editor in choice, open the manifest.json file and add the following:</p>
+        
+<pre><code>
+{
+  "manifest_version": 2,
+  "name": "My Assigned Issues",
+  "version": "1.0",
+  "icons": {
+    "64":"img/icon-64px.png"
+  }
+}
+</code></pre>
+
+<p><blockquote>Don't have icons? No worries! There are some icons in the repo in the step-01 folder. Download them and drop them in.</blockquote></p>
+      
+      <p>Look good? Great! Let's test our extension in Chrome. To load our extension, we need to enable Developer Mode on chrome://extensions/ by using the checkbox:</p>
+
+      <img src="images/screenshot-20150108-enable-developer-mode.png" alt="Enable Developer Mode">
+      
+      <p>Now, use the "load unpacked extension..." button and location your project folder. If all is successful, you should see the extension loaded:</p>
+
+      <img src="images/screenshot-20150108-first-load.png" alt="Loading our extension.">
+      
+      <p>Great! Every extension needs a toolbar icon however, so let's add one shall we? Remember all those icons we downloaded? Let's use the browser_action attribute in our manifest.json file to add</p>
+      
+<pre><code>
+{
+  "manifest_version": 2,
+  "name": "My Assigned Issues",
+  "version": "1.0",
+  "icons": {
+    "19":"img/icon-19px.png",
+    "38":"img/icon-38px.png",
+    "64":"img/icon-64px.png",
+    "128":"img/icon-128px.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19":"img/icon-19px.png",
+      "38":"img/icon-38px.png"
+    }
+  }
+}
+</code></pre>
+
+      <p>After making the update to our manifest, we can reload the extension to test the change using the "Reload" link under extension details. After reloading, we should now see our browser icon:</p>
+
+      <img src="images/screenshot-20150108-step-01-loaded.png" alt="Step 01 complete!">
+      
+      <p>We're on our way.</p>
+
+      <p><blockquote>Stuck? Check the step-01 folder for a solution.</blockquote></p>
+      
+      <h3>
+        <a id="step-02-popup" class="anchor" href="#step-02-popup" aria-hidden="true">
+          <span class="octicon octicon-link"></span>
+        </a>Display issues with a popup
+      </h3>
+      
+      <p>Icons are all fine and dandy, but we want our extension to show issues. To do so, we need a popup.html file. Let's create one:</p>
+      
+<pre><code>➜ ~ touch popup.html
+</code></pre>
+
+      <p>Again, we have to update our manifest.json to add a new attribute, default_popup, to our browser_action: </p>
+<pre><code>{
+  "manifest_version": 2,
+  "name": "My Assigned Issues",
+  "version": "1.0",
+  "icons": {
+    "19":"img/icon-19px.png",
+    "38":"img/icon-38px.png",
+    "64":"img/icon-64px.png",
+    "128":"img/icon-128px.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19":"img/icon-19px.png",
+      "38":"img/icon-38px.png"
+    },
+    "default_popup": "popup.html"
+  }
+}
+</code></pre>
+
+      <p>We can verify that things are working by reloading out extension and testing the popup:</p>
+
+      <img src="images/screenshot-20150108-step-02-blank-popup-loaded.png" alt="Our blank popup.html in action.">
+      
+      <p>Great! Now let's add some structure to our popup.html:</p>
+      
+<pre><code>&lt;html&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot;&gt;
+    &lt;title&gt;&lt;/title&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;css/popup.css&quot;&gt;
+&lt;/head&gt;
+&lt;body class=&quot;container&quot;&gt;
+  &lt;div&gt;
+    &lt;div id=&quot;user-props&quot;&gt;
+      &lt;div id=&quot;avatar&quot;&gt;&lt;/div&gt;
+      &lt;div id=&quot;username&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;ul id=&quot;issues&quot;&gt;&lt;/ul&gt;
+  &lt;/div&gt;
+  &lt;script src=&quot;js/github_api.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;js/popup.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+      <p>Let's also add a couple of files so we can do some additional work:</p>
+      
+<pre><code>➜ ~ touch js/popup.js
+➜ ~ touch css/popup.css
+</code></pre>
+
+      <p>The popup.js is important; all our application code is going to run within this file. With Chrome Extentions, we can't use inline script code within our html.</p>
+      
+      <p>You may notice that in the html structure, there is reference to a couple of JavaScript files (namely github_api.js). This library takes care of some heavy lifting when talking to the Github API.</p>
+
+      <p>Our github_api.js library has two methods that we can make use of for the purpose of this codelab:</p>
+
+<pre><code>/**
+*
+* Get who I am
+*
+* @param {String} token 
+* @return {Promise}
+*/
+GitHub.getMe(token)
+
+/**
+*
+* Get my assigned issues
+*
+* @param {String} token 
+* @return {Promise}
+*/
+GitHub.getMyIssues(token) 
+</code></pre>
+
+      <p><blockquote>Tip: You don't have to paste that code block into your popup.js; it's only the definition of the method. Keep reading below for more code!</blockquote></p>
+
+      <p>To use the file, make sure you download and add the file to your project. You cannot use external resources. You can obtain that file from the repo in the resources directory.</p>
+      
+      <p>Once added, we can begin writing code within popup.js to handle talking to the API:</p>
+
+<pre><code>// Get one: https://github.com/settings/applications
+var myToken = 'YOUR_PERSONAL_TOKEN';
+
+GitHub.getMyIssues(myToken).then(function (issues) {
+  
+  // {array of object} issues
+  // definition: https://developer.github.com/v3/issues/#list-issues
+  //
+  //  YOUR CODELAB TASK: 
+  //    loop over issues and append list item(s)
+  //
+
+});
+
+GitHub.getMe(myToken).then(function (me) {
+
+  // {object} me
+  // definition: https://developer.github.com/v3/users/#get-the-authenticated-user
+  //
+  //  YOUR CODELAB TASK: 
+  //    set username and avatar in DOM
+  //
+
+});
+</code></pre>
+      
+      <p>Some important things to note:</p>
+
+      <ol>
+        <li>You'll need to generate a personal access token from your Github user via <a href="https://github.com/settings/applications">the applications</a> page.</li>
+        <li>The GitHub.getMyIssues method will only return tickets you assigned to. If you want to expand that, you can modify the method with paramters via the Github v3 API documetation (see <a href="https://developer.github.com/v3/issues/#list-issues">List Issues</a>)</li>
+        <li>Remember, our Github library returns <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promises</a>.</li>
+      </ol>
+
+      <p>While having our name is cool, let's go a step further and load our avatar image. Remember, because of Content Security Policy, we can't just load resources as we want. Instead, we need to use <a href="https://developer.chrome.com/apps/app_external">cross-origin XMLHTTPRequests</a> to fetch and then serve them via blob: urls:</p>
+
+<pre><code>GitHub.getMe(myToken).then(function (me) {
+  username.textContent = me.login;
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', me.avatar_url, true);
+  xhr.responseType = 'blob';
+  xhr.onload = function(e) {
+    var img = document.createElement('img');
+    img.src = window.URL.createObjectURL(this.response);
+    document.getElementById('avatar').appendChild(img);
+  };
+  xhr.send();
+
+  });
+  </code></pre>
+
+      <p>But this still won't work. We need to add permissions for that domain to our manifest.json:</p>
+
+<pre><code>{
+  "manifest_version": 2,
+  "name": "My Assigned Issues",
+  "version": "1.0",
+  "icons": {
+    "19":"img/icon-19px.png",
+    "38":"img/icon-38px.png",
+    "64":"img/icon-64px.png",
+    "128":"img/icon-128px.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19":"img/icon-19px.png",
+      "38":"img/icon-38px.png"
+    },
+    "default_popup": "popup.html"
+  },
+  "permissions": ["https://avatars.githubusercontent.com/"]
+}
+</code></pre>
+
+      <p>Finally, to make things a little more viewable in our window, let's add some basic CSS:</p>
+
+<pre><code>body {
+    width: 400px;
+}
+
+#user-props {
+  display: flex;
+}
+
+#user-props div {
+  padding: 0.5em;
+}
+
+#avatar {
+  flex-grow: 0;
+}
+
+#avatar img {
+  max-width: 100px;
+}
+
+#username {
+  flex-grow: 2;
+}
+</code></pre>
+
+      <p>After we've completed your implementation, reload the extension with Ctrl+R or the Reload link and we should have some data loading in our popup:</p>
+
+      <img src="images/screenshot-20150108-step-02-loaded.png" alt="Step 01 complete!">
+
+      <p><blockquote>Stuck? Check the step-02 folder for a solution.</blockquote></p>
+      
+      <h3>
+        <a id="step-02-popup" class="anchor" href="#step-02-popup" aria-hidden="true">
+          <span class="octicon octicon-link"></span>
+        </a>Updates in the background
+      </h3>
+      
+      <p>Clicking a button is so 2002. Let's update our extension to update in the background without having to click our icon.</p>
+      
+      <p>First, let's create a background.js file:</p>
+
+<pre><code>➜ ~ touch js/background.js
+</code></pre>
+
+      <p>Now we need to make Chrome aware that it will run in the background by updating our manifest.json:</p>
+
+<pre><code>{
+  "manifest_version": 2,
+  "name": "My Assigned Issues",
+  "version": "1.0",
+  "icons": {
+    "19":"img/icon-19px.png",
+    "38":"img/icon-38px.png",
+    "64":"img/icon-64px.png",
+    "128":"img/icon-128px.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19":"img/icon-19px.png",
+      "38":"img/icon-38px.png"
+    },
+    "default_popup": "popup.html"
+  },
+  "permissions": ["https://avatars.githubusercontent.com/"],
+  "background": {
+    "scripts": ["js/github_api.js", "js/background.js"]
+  }
+}
+</code></pre>
+        
+      <p>Note, we've also added our github_api.js library, as we'll be accessing that libraries methods from background.js.</p>
+
+      <p><blockquote>Tip: You can debug background pages by clicking "background page" on the "Inspect views" list on chrome://extensions/ page. It's the Chrome DevTools you know and love.</blockquote></p>
+
+      <p>We're going to also take a preemptive step and add the storage permission to our manifest.json:</p>
+
+<pre><code>{
+  "manifest_version": 2,
+  "name": "My Assigned Issues",
+  "version": "1.0",
+  "icons": {
+    "19":"img/icon-19px.png",
+    "38":"img/icon-38px.png",
+    "64":"img/icon-64px.png",
+    "128":"img/icon-128px.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19":"img/icon-19px.png",
+      "38":"img/icon-38px.png"
+    },
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage", "https://avatars.githubusercontent.com/"],
+  "background": {
+    "scripts": ["js/github_api.js", "js/background.js"]
+  }
+}</code></pre>
+
+      <p>Adding this permissions will allow us to use the <a href="https://developer.chrome.com/extensions/storage">Chrome.Storage API</a> to store data that we can access in our extension.</p>
+
+      <p>First, let's go ahead and create an interval and function to get our issues in background.js:</p>
+
+<pre><code>function updateIssues() {
+  GitHub.getMyIssues(githubToken).then(function (issues) {
+    // YOUR CODELAB TASK: 
+    //    Process results and store
+  });
+}
+
+// Grab issues every 5 minutes
+setInterval(updateIssues, 5 * 60 * 1000); 
+updateIssues();
+</code></pre>
+
+      <p>Similarly, let's get updates to our user data every 60 minutes:</p>
+
+<pre><code>function updateUser() {
+  GitHub.getMe(githubToken).then(function (me) {
+    //  YOUR CODELAB TASK: 
+    //    Process results and store
+  });
+}
+
+// Grab issues every 60 minutes
+setInterval(updateUser, 60 * 60 * 1000);
+updateUser();
+</code></pre>
+
+      <p>To store those results, you can use chrome.storage.local.set():</p>
+
+<pre><code>// Get one: https://github.com/settings/applications
+var githubToken = "YOUR_PERSONAL_TOKEN";
+
+function updateUser() {
+  GitHub.getMe(githubToken).then(function (me) {
+    chrome.storage.local.set({
+      user: me
+    });
+  });
+}
+
+function updateIssues() {
+  GitHub.getMyIssues(githubToken).then(function (issues) {
+    chrome.storage.local.set({
+      issues: issues
+    });  
+  });
+}
+
+setInterval(updateIssues, 5 * 60 * 1000); 
+updateIssues();
+
+setInterval(updateUser, 60 * 60 * 1000);
+updateUser();
+</code></pre>
+
+      <p>Since we're working in the background, it would be helpful to know when issues are available. We can use the chrome.browserAction.setBadgeText and chrome.browserAction.setBadgeBackgroundColor to display the number of issues on the browser action button:</p>
+
+<pre><code>// Get one: https://github.com/settings/applications
+var githubToken = "YOUR_PERSONAL_TOKEN";
+
+function updateUser() {
+  GitHub.getMe(githubToken).then(function (me) {
+    chrome.storage.local.set({
+      user: me
+    });
+  });
+}
+
+function updateIssues() {
+  GitHub.getMyIssues(githubToken).then(function (issues) {
+
+    chrome.storage.local.set({
+      issues: issues
+    });
+
+    chrome.browserAction.setBadgeBackgroundColor({
+      color: '#F00'
+    });
+
+    chrome.browserAction.setBadgeText({
+      text: '' + issues.length
+    });
+  
+  });
+}
+
+//
+// Grab issues every 5 minutes
+//
+setInterval(updateIssues, 5 * 60 * 1000); 
+updateIssues();
+
+//
+// Grab user info every 60 minutes
+//
+setInterval(updateUser, 60 * 60 * 1000);
+updateUser();
+</code></pre>
+
+      <p>Since we're now doing work in the background, we also need to update the popup.js so that we can use the locally stored data:</p>
+
+<pre><code>chrome.storage.local.get(['user', 'issues'], function(data) {
+  //  YOUR CODELAB TASK:
+  //    set username
+
+  //  YOUR CODELAB TASK: 
+  //    set avatar
+
+  //  YOUR CODELAB TASK:
+  //    set issue list
+});
+</code></pre>
+
+      <p>When we've completed the above implementation, we should now have a badge:</p>
+
+      <img src="images/screenshot-20150108-step-03-loaded.png" alt="Badge text applied to icon.">
+
+      <p><blockquote>Stuck? Check the step-03 folder for a solution.</blockquote></p>
+
+      <h3>
+        <a id="step-04-options" class="anchor" href="#step-04-options" aria-hidden="true">
+          <span class="octicon octicon-link"></span>
+        </a>Adding options on context menu
+      </h3>
+
+      <p>While defining our token in our code might be simple for us, if we have other users, that would be an issues. We can instead add an options menu to our extension. Let's start by creating an options.html and options.js:</p>
+
+<pre><code>➜ ~ touch options.html
+➜ ~ touch js/options.js
+</code></pre>
+
+      <p>Now, let's update our manifest with the options_page property:</p>
+
+<pre><code>{
+  "manifest_version": 2,
+  "name": "My Assigned Issues",
+  "version": "1.0",
+  "icons": {
+    "19":"img/icon-19px.png",
+    "38":"img/icon-38px.png",
+    "64":"img/icon-64px.png",
+    "128":"img/icon-128px.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19":"img/icon-19px.png",
+      "38":"img/icon-38px.png"
+    },
+    "default_popup": "popup.html"
+  },
+  "permissions": ["storage", "https://avatars.githubusercontent.com/"],
+  "background": {
+    "scripts": ["js/github_api.js", "js/background.js"]
+  },
+  "options_page": "options.html"
+}  
+</code></pre>
+
+      <p>When right-clicking on our icon, you'll see a new option, "Options".</p>
+
+      <img src="images/screenshot-20150108-options-added.png" alt="Options item added to menu">
+
+      <p>We can add some structure so that we can save data:</p>
+
+<pre><code>
+&lt;html&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;title&gt;Options&lt;/title&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;css/popup.css&quot;&gt;
+&lt;/head&gt;
+&lt;body class=&quot;container&quot;&gt;
+  &lt;h2&gt;Options&lt;/h2&gt;
+  &lt;p&gt;Generate a Personal Access Token via Github: &lt;a href=&quot;https://github.com/settings/applications&quot;&gt;https://github.com/settings/applications&lt;/a&gt;.&lt;/p&gt;
+  &lt;form&gt;
+    &lt;label for=&quot;githubToken&quot;&gt;Github Token&lt;/label&gt;
+    &lt;input id=&quot;githubToken&quot; type=&quot;text&quot;&gt;
+    &lt;button id=&quot;save&quot; type=&quot;button&quot;&gt;Save&lt;/button&gt;
+  &lt;/form&gt;
+  &lt;script src=&quot;js/options.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+      <p>Nothing too exotic, just a basic form:</p>
+
+      <img src="images/screenshot-20150108-options-page.png" alt="our basic options page">
+
+      <p>Now let's write some code to save that options data:</p>
+
+<pre><code>var githubToken = document.getElementById('githubToken');
+var saveButton = document.getElementById('save');
+
+// save our Github token
+saveButton.addEventListener('click', function() {
+  chrome.storage.local.set({
+    githubToken: githubToken.value
+  }, function() {
+    //force background page to reload data
+    chrome.extension.getBackgroundPage().updateUser();
+    chrome.extension.getBackgroundPage().updateIssues();
+  });
+});
+
+// get our Github token
+chrome.storage.local.get('githubToken', function(data) {
+  if(data && data.githubToken) {
+    githubToken.value = data.githubToken;
+  }
+});
+</code></pre>
+
+      <p><blockquote>Tip: Instead of using chrome.extension.getBackgroundPage(), you could also implement chrome.storage.onChanged.addListener() on the background page to listen for changes to the value.</blockquote></p>
+
+      <p>Great! Now we can update our background.js to look for that value:</p>
+
+<pre><code>
+function updateUser() {
+  chrome.storage.local.get('githubToken', function(data) {
+    if(data && data.githubToken) {
+
+      GitHub.getMe(data.githubToken).then(function (me) {
+        chrome.storage.local.set({
+          user: me
+        });
+      });
+    }
+  });
+}
+
+function updateIssues() {
+  chrome.storage.local.get('githubToken', function(data) {
+
+    if(data && data.githubToken) {
+
+      GitHub.getMyIssues(data.githubToken).then(function (issues) {
+
+        chrome.storage.local.set({
+          issues: issues
+        });
+
+        chrome.browserAction.setBadgeBackgroundColor({
+          color: '#F00'
+        });
+
+        chrome.browserAction.setBadgeText({
+          text: '' + issues.length
+        });
+      
+      });
+    }
+  });
+}
+</code></pre>
+     
+      <p><blockquote>Stuck? Check the step-04 folder for a solution.</blockquote></p>
+
+      <h3>
+        <a id="step-02-popup" class="anchor" href="#step-02-popup" aria-hidden="true">
+          <span class="octicon octicon-link"></span>
+        </a>Whoo hoo! You did it!
+      </h3>
+
+      <p>Congratulations! You have completed the basics of this codelab! Have some extra time? Things for consideration:</p>
+
+      <ul>
+        <li>Make it pretty. Use your framework of your choice or just write some CSS.</li>
+        <li>Use the <a href="https://github.com/yeoman/generator-chrome-extension">Yeoman Chrome Extension</a> generator to quickly setup a build environment with all the Grunt fixings.</li>
+        <li>Build the future: use <a href="https://www.polymer-project.org/">Polymer</a> and some web components.</li>
+        <li>Build even more on the API. The GitHub API is extensive</li>
+      </ul>
+
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/GoogleDeveloperExperts">GoogleDeveloperExperts</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
